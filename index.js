@@ -1,28 +1,37 @@
 import express from "express";
-import { YoutubeTranscript } from "youtube-transcript";
+import { exec } from "child_process";
 
 const app = express();
 app.use(express.json());
 
 app.get("/api/get-transcript", async (req, res) => {
-  try {
-    const videoUrl = req.query.url;
-    if (!videoUrl) return res.status(400).json({ error: "Missing URL" });
+  const videoUrl = req.query.url;
+  if (!videoUrl) return res.status(400).json({ error: "Missing YouTube URL" });
 
-    const match = videoUrl.match(/(?:youtube\.com\/.*v=|youtu\.be\/)([0-9A-Za-z_-]{11})/);
-    if (!match) return res.status(400).json({ error: "Invalid URL" });
+  const cmd = `./yt-dlp --skip-download --write-auto-sub --sub-format json --sub-lang en --print-json "${videoUrl}"`;
 
-    const videoId = match[1];
-    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
+  exec(cmd, (error, stdout, stderr) => {
+    if (error) return res.status(500).json({ error: "Failed to fetch transcript", details: stderr });
 
-    if (!transcript || transcript.length === 0)
-      return res.status(404).json({ error: "No captions found" });
+    try {
+      const lines = stdout.trim().split("\n");
+      const lastLine = lines[lines.length - 1];
+      const data = JSON.parse(lastLine);
 
-    res.json({ transcript });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Transcript not available", details: err.message });
-  }
+      if (!data.subtitles || !data.subtitles.en)
+        return res.status(404).json({ error: "No captions found" });
+
+      const transcript = data.subtitles.en.map(item => ({
+        start: item.start,
+        duration: item.duration,
+        text: item.text
+      }));
+
+      res.json({ transcript });
+    } catch (err) {
+      res.status(500).json({ error: "Failed to parse transcript", details: err.message });
+    }
+  });
 });
 
 const port = process.env.PORT || 3000;
