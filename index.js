@@ -40,7 +40,7 @@ app.get("/api/get-transcript", async (req, res) => {
   if (!videoUrl) return res.status(400).json({ error: "Missing YouTube URL" });
 
   // Command to download auto-subtitles in VTT
-  const cmd = `./yt-dlp --skip-download --write-auto-sub --sub-lang en --sub-format vtt -o "subs.%(ext)s" "${videoUrl}"`;
+  const cmd = `./yt-dlp --cookies cookies.txt --skip-download --write-auto-sub --sub-lang en --sub-format vtt -o "subs.%(ext)s" "${videoUrl}"`;
 
   exec(cmd, (error, stdout, stderr) => {
     if (error) {
