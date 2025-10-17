@@ -17,17 +17,17 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing YouTube URL" });
     }
 
-    // Extract video ID
-    const match = videoUrl.match(/(?:v=|youtu\.be\/)([^&]+)/);
-    if (!match) {
+    // Robust video ID extraction
+    const videoIdMatch = videoUrl.match(/(?:v=|\/)([0-9A-Za-z_-]{11})(?:\?|&|$)/);
+    if (!videoIdMatch) {
       return res.status(400).json({ error: "Invalid YouTube URL" });
     }
-    const videoId = match[1];
+    const videoId = videoIdMatch[1];
 
-    // Fetch transcript using youtube-transcript package
+    // Fetch transcript
     const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-
     res.status(200).json({ transcript });
+
   } catch (err) {
     console.error("Error fetching transcript:", err);
     res.status(500).json({ error: "Transcript not available", details: err.message });
