@@ -1,0 +1,13 @@
+{
+  "name": "youtube-transcript-api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "api/get-transcript.js",
+  "scripts": {
+    "start": "node api/get-transcript.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "youtube-transcript": "^1.6.3"
+  }
+}
