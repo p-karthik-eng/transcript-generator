@@ -6,6 +6,6 @@
     "start": "node api/get-transcript.js"
   },
   "dependencies": {
-    "youtube-transcript": "1.0.6"
+    "youtube-transcript": "^1.0.6"
   }
 }

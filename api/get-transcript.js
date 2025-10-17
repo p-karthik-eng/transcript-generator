@@ -1,3 +1,5 @@
+import { YoutubeTranscript } from "youtube-transcript";
+
 export default async function handler(req, res) {
   try {
     const method = req.method;
@@ -6,8 +8,7 @@ export default async function handler(req, res) {
     if (method === "GET") {
       videoUrl = req.query.url;
     } else if (method === "POST") {
-      const body = req.body;
-      videoUrl = body?.url;
+      videoUrl = req.body.url;
     } else {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
@@ -23,28 +24,12 @@ export default async function handler(req, res) {
     }
     const videoId = match[1];
 
-    // Use native fetch (Vercel Node 18+ supports this)
-    const apiUrl = `https://youtubetranscript.com/?server=1&video_id=${videoId}`;
-    const response = await fetch(apiUrl);
+    // Fetch transcript using youtube-transcript package
+    const transcript = await YoutubeTranscript.fetchTranscript(videoId);
 
-    if (!response.ok) {
-      return res
-        .status(500)
-        .json({ error: `Proxy API returned status ${response.status}` });
-    }
-
-    const data = await response.json();
-
-    if (!data || data.error) {
-      return res
-        .status(404)
-        .json({ error: "Transcript not found or video has no captions" });
-    }
-
-    // Return transcript
-    res.status(200).json(data);
+    res.status(200).json({ transcript });
   } catch (err) {
-    console.error("Transcript fetch error:", err);
-    res.status(500).json({ error: "Internal Server Error", details: err.message });
+    console.error("Error fetching transcript:", err);
+    res.status(500).json({ error: "Transcript not available", details: err.message });
   }
 }
