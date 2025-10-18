@@ -1,6 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
-import transcriptRoute from "./routes/transcriptRoute.js";
+import transcriptRoute from "./routes/getTranscriptRoute.js";
 import proxyRoute from "./routes/proxyRoute.js";
 
 dotenv.config();
