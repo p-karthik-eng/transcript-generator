@@ -3,7 +3,7 @@ import axios from "axios";
 
 function App() {
   const [url, setUrl] = useState("");
-  const [transcript, setTranscript] = useState([]);
+  const [transcript, setTranscript] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -12,19 +12,23 @@ function App() {
       setError("Please enter a YouTube link");
       return;
     }
+
     setLoading(true);
     setError("");
-    setTranscript([]);
+    setTranscript("");
 
     try {
-      const res = await axios.post(
-        "https://transcript-generator-eight.vercel.app/api/get-transcript",
-        { url },
-        { headers: { "Content-Type": "application/json" } }
+      // ✅ Use your Render backend directly
+      const response = await axios.get(
+        `https://transcript-generator-foc1.onrender.com/api/get-transcript?url=${encodeURIComponent(url)}`,
+        { responseType: "text" } // Important: tells axios to expect plain text
       );
 
-      if (res.data.error) throw new Error(res.data.error);
-      setTranscript(res.data.transcript);
+      if (!response.data || response.data.includes("Failed") || response.data.includes("No captions")) {
+        throw new Error("Transcript not found or this video has no captions.");
+      }
+
+      setTranscript(response.data);
     } catch (err) {
       console.error(err);
       setError("Transcript not found or this video has no captions.");
@@ -83,7 +87,7 @@ function App() {
         </p>
       )}
 
-      {transcript.length > 0 && (
+      {transcript && (
         <div
           style={{
             marginTop: "30px",
@@ -93,14 +97,11 @@ function App() {
             backgroundColor: "#fafafa",
             maxHeight: "400px",
             overflowY: "auto",
+            whiteSpace: "pre-wrap",
           }}
         >
           <h3>Transcript:</h3>
-          {transcript.map((line, i) => (
-            <p key={i} style={{ margin: "8px 0", lineHeight: "1.5" }}>
-              {line.text}
-            </p>
-          ))}
+          <p style={{ marginTop: "10px" }}>{transcript}</p>
         </div>
       )}
     </div>
